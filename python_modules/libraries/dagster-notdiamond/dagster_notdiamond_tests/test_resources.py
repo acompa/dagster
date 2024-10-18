@@ -56,7 +56,7 @@ def test_notdiamond_resource_with_op(mock_client, mock_context, mock_wrapper):
         assert notdiamond_resource
 
         with notdiamond_resource.get_client(context=mock_context) as client:
-            client.chat.completions.create(
+            client.model_select(
                 model=["openai/gpt-4o-mini", "openai/gpt-4o"],
                 messages=[{"role": "user", "content": "Say this is a test"}],
             )
@@ -82,7 +82,7 @@ def test_notdiamond_resource_with_asset(mock_client, mock_context, mock_wrapper)
         assert notdiamond_resource
 
         with notdiamond_resource.get_client(context=mock_context) as client:
-            client.chat.completions.create(
+            client.model_select(
                 model=["openai/gpt-4o-mini", "openai/gpt-4o"],
                 messages=[{"role": "user", "content": "Say this is a test"}],
             )
@@ -117,7 +117,7 @@ def test_notdiamond_resource_with_graph_backed_asset(mock_client, mock_context, 
         assert notdiamond_resource
 
         with notdiamond_resource.get_client(context=mock_context) as client:
-            client.chat.completions.create(model=model_version, messages=[message])
+            client.model_select(model=model_version, messages=[message])
 
         assert mock_client.called
         assert mock_wrapper.called
@@ -156,7 +156,7 @@ def test_notdiamond_resource_with_multi_asset(mock_client, mock_context, mock_wr
         with notdiamond_resource.get_client_for_asset(
             context=mock_context, asset_key=AssetKey("result")
         ) as client:
-            client.chat.completions.create(
+            client.model_select(
                 model=["openai/gpt-4o-mini", "openai/gpt-4o"],
                 messages=[{"role": "user", "content": "Say this is a test"}],
             )
@@ -172,7 +172,7 @@ def test_notdiamond_resource_with_multi_asset(mock_client, mock_context, mock_wr
         # Test failure when asset_key is not provided
         with pytest.raises(DagsterInvariantViolationError):
             with notdiamond_resource.get_client(context=mock_context) as client:
-                client.chat.completions.create(
+                client.model_select(
                     model=["openai/gpt-4o-mini", "openai/gpt-4o"],
                     messages=[{"role": "user", "content": "Say this is a test"}],
                 )
@@ -209,7 +209,7 @@ def test_notdiamond_resource_with_partitioned_asset(mock_client, mock_context, m
             mock_context.output_for_asset_key.return_value = "test"
 
             with notdiamond_resource.get_client(context=mock_context) as client:
-                client.chat.completions.create(
+                client.model_select(
                     model=["openai/gpt-4o-mini", "openai/gpt-4o"],
                     messages=[{"role": "user", "content": "Say this is a test"}],
                 )

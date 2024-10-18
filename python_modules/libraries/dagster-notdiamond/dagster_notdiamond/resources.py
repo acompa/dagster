@@ -288,7 +288,7 @@ class NotDiamondResource(ConfigurableResource):
         logged in the asset materializations associated with the provided ``asset_key``.
 
         By default, the client comes with wrapped endpoints
-        for three API resources, Completions, Embeddings and Chat,
+        for the model_select resource in the Not Diamond API,
         allowing to log the API usage metadata in the asset metadata.
 
         This method can only be called when working with assets,
