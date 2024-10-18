@@ -30,9 +30,6 @@ def test_notdiamond_client(mock_client) -> None:
     with notdiamond_resource.get_client(mock_context):
         mock_client.assert_called_once_with(
             api_key="xoxp-1234123412341234-12341234-1234",
-            organization=None,
-            project=None,
-            base_url=None,
         )
 
 
@@ -40,9 +37,6 @@ def test_notdiamond_client(mock_client) -> None:
 def test_notdiamond_client_with_config(mock_client) -> None:
     notdiamond_resource = NotDiamondResource(
         api_key="xoxp-1234123412341234-12341234-1234",
-        organization="foo",
-        project="bar",
-        base_url="http://foo.bar",
     )
     notdiamond_resource.setup_for_execution(build_init_resource_context())
 
@@ -50,9 +44,6 @@ def test_notdiamond_client_with_config(mock_client) -> None:
     with notdiamond_resource.get_client(mock_context):
         mock_client.assert_called_once_with(
             api_key="xoxp-1234123412341234-12341234-1234",
-            organization="foo",
-            project="bar",
-            base_url="http://foo.bar",
         )
 
 
@@ -95,7 +86,7 @@ def test_notdiamond_resource_with_asset(mock_client, mock_context, mock_wrapper)
             )
 
         assert mock_client.called
-        assert mock_wrapper.call_count == 3
+        assert mock_wrapper.call_count == 1
 
     result = materialize_to_memory(
         [notdiamond_asset],
@@ -168,7 +159,7 @@ def test_notdiamond_resource_with_multi_asset(mock_client, mock_context, mock_wr
             )
 
         assert mock_client.called
-        assert mock_wrapper.call_count == 3
+        assert mock_wrapper.call_count == 1
         mock_wrapper.assert_called_with(
             api_endpoint_class=ANY,
             context=mock_context,
@@ -251,7 +242,7 @@ def test_notdiamond_resource_with_partitioned_asset(mock_client, mock_context, m
         assert result.success
 
     expected_wrapper_call_counts = (
-        3 * len(notdiamond_partitioned_assets) * len(notdiamond_partitions_def.get_partition_keys())
+        len(notdiamond_partitioned_assets) * len(notdiamond_partitions_def.get_partition_keys())
     )
     assert mock_wrapper.call_count == expected_wrapper_call_counts
 
