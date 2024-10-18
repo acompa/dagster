@@ -57,7 +57,8 @@ def test_notdiamond_resource_with_op(mock_client, mock_context, mock_wrapper):
 
         with notdiamond_resource.get_client(context=mock_context) as client:
             client.chat.completions.create(
-                model="gpt-3.5-turbo", messages=[{"role": "user", "content": "Say this is a test"}]
+                model=["openai/gpt-4o-mini", "openai/gpt-4o"],
+                messages=[{"role": "user", "content": "Say this is a test"}],
             )
 
         assert mock_client.called
@@ -82,7 +83,8 @@ def test_notdiamond_resource_with_asset(mock_client, mock_context, mock_wrapper)
 
         with notdiamond_resource.get_client(context=mock_context) as client:
             client.chat.completions.create(
-                model="gpt-3.5-turbo", messages=[{"role": "user", "content": "Say this is a test"}]
+                model=["openai/gpt-4o-mini", "openai/gpt-4o"],
+                messages=[{"role": "user", "content": "Say this is a test"}],
             )
 
         assert mock_client.called
@@ -104,7 +106,7 @@ def test_notdiamond_resource_with_asset(mock_client, mock_context, mock_wrapper)
 def test_notdiamond_resource_with_graph_backed_asset(mock_client, mock_context, mock_wrapper):
     @op
     def model_version_op():
-        return "gpt-3.5-turbo"
+        return ["openai/gpt-4o-mini", "openai/gpt-4o"]
 
     @op
     def message_op():
@@ -155,7 +157,8 @@ def test_notdiamond_resource_with_multi_asset(mock_client, mock_context, mock_wr
             context=mock_context, asset_key=AssetKey("result")
         ) as client:
             client.chat.completions.create(
-                model="gpt-3.5-turbo", messages=[{"role": "user", "content": "Say this is a test"}]
+                model=["openai/gpt-4o-mini", "openai/gpt-4o"],
+                messages=[{"role": "user", "content": "Say this is a test"}],
             )
 
         assert mock_client.called
@@ -170,7 +173,7 @@ def test_notdiamond_resource_with_multi_asset(mock_client, mock_context, mock_wr
         with pytest.raises(DagsterInvariantViolationError):
             with notdiamond_resource.get_client(context=mock_context) as client:
                 client.chat.completions.create(
-                    model="gpt-3.5-turbo",
+                    model=["openai/gpt-4o-mini", "openai/gpt-4o"],
                     messages=[{"role": "user", "content": "Say this is a test"}],
                 )
         return None, None
@@ -207,7 +210,7 @@ def test_notdiamond_resource_with_partitioned_asset(mock_client, mock_context, m
 
             with notdiamond_resource.get_client(context=mock_context) as client:
                 client.chat.completions.create(
-                    model="gpt-3.5-turbo",
+                    model=["openai/gpt-4o-mini", "openai/gpt-4o"],
                     messages=[{"role": "user", "content": "Say this is a test"}],
                 )
 
@@ -294,7 +297,7 @@ def test_notdiamond_wrapper_with_asset(mock_client, mock_context, mock_wrapper):
                 func=client.fine_tuning.jobs.create,
             )
             client.fine_tuning.jobs.create(
-                model="gpt-3.5-turbo", training_file="some_training_file"
+                model=["openai/gpt-4o-mini", "openai/gpt-4o"], training_file="some_training_file"
             )
 
             mock_context.add_output_metadata.assert_called_with(
@@ -323,7 +326,7 @@ def test_notdiamond_wrapper_with_asset(mock_client, mock_context, mock_wrapper):
 def test_notdiamond_wrapper_with_graph_backed_asset(mock_client, mock_context, mock_wrapper):
     @op
     def model_version_op():
-        return "gpt-3.5-turbo"
+        return "openai/gpt-4o-mini"
 
     @op
     def training_file_op():
@@ -400,7 +403,7 @@ def test_notdiamond_wrapper_with_multi_asset(mock_client, mock_context, mock_wra
                 func=client.fine_tuning.jobs.create,
             )
             client.fine_tuning.jobs.create(
-                model="gpt-3.5-turbo", training_file="some_training_file"
+                model=["openai/gpt-4o-mini", "openai/gpt-4o"], training_file="some_training_file"
             )
 
             mock_context.add_output_metadata.assert_called_with(
@@ -459,7 +462,8 @@ def test_notdiamond_wrapper_with_partitioned_asset(mock_client, mock_wrapper):
                     func=client.fine_tuning.jobs.create,
                 )
                 client.fine_tuning.jobs.create(
-                    model="gpt-3.5-turbo", training_file="some_training_file"
+                    model=["openai/gpt-4o-mini", "openai/gpt-4o"],
+                    training_file="some_training_file",
                 )
                 mock_context.add_output_metadata.assert_called_with(
                     {
