@@ -1,0 +1,137 @@
+---
+title: "Not Diamond & Dagster | Dagster Docs"
+description: "The dagster-notdiamond library uses Not Diamond to dynamically recommend the best LLM for a user prompt."
+---
+
+# Not Diamond & Dagster (Experimental)
+
+<Note>
+  This feature is considered <strong>experimental</strong>.
+</Note>
+
+The `dagster-notdiamond` library allows you to build LLM pipelines with Dagster which dynamically recommends LLMs for your prompts using the Not Diamond API. It also logs Not Diamond API usage metadata in [Dagster Insights](/dagster-plus/insights).
+
+Using this library's <PyObject module="dagster_notdiamond" object="NotDiamondResource" />, you can easily interact with the [Not Diamond REST API][docs] via the [Not Diamond Python SDK](https://github.com/notdiamond/notdiamond-python).
+
+When used with Dagster's [asset definitions](/concepts/assets/software-defined-assets), the resource automatically logs Not Diamond usage metadata in asset metadata. See the [Relevant APIs](#relevant-apis) section for more information.
+
+---
+
+## Getting started
+
+Before you get started with the `dagster-notdiamond` library, we recommend familiarizing yourself with [Not Diamond's Python SDK](https://github.com/notdiamond/notdiamond-python), which this integration uses to interact with the [Not Diamond REST API][docs].
+
+---
+
+## Prerequisites
+
+To get started, install the `dagster` and `dagster-notdiamond` Python packages:
+
+```bash
+pip install dagster dagster-notdiamond
+```
+
+Note that you will need an Not Diamond [API key](https://app.notdiamond.com/keys) to use the resource.
+
+---
+
+## Connecting to Not Diamond
+
+The first step in using Not Diamond with Dagster is to tell Dagster how to connect to a client using a `notdiamond` [resource](/concepts/resources). This resource contains the credentials needed to interact with the Not Diamond API.
+
+We will supply our credentials as environment variables by adding them to a `.env` file. For more information on setting environment variables in a production setting, see [Using environment variables and secrets](/guides/dagster/using-environment-variables-and-secrets).
+
+```bash
+# .env
+
+NOTDIAMOND_API_KEY=...
+```
+
+Then, we can instruct Dagster to authorize the notdiamond resource using the environment variables:
+
+```python startafter=start_example endbefore=end_example file=/integrations/notdiamond/resource.py
+from dagster_notdiamond import NotDiamondResource
+
+from dagster import EnvVar
+
+# Pull API key from environment variables
+notdiamond = NotDiamondResource(
+    api_key=EnvVar("notdiamond_API_KEY"),
+)
+```
+
+---
+
+## Using the notdiamond resource with assets
+
+The notdiamond resource can be used in assets in order to interact with the notdiamond API. Note that in this example, we supply our credentials as environment variables directly when instantiating the <PyObject object="Definitions" /> object.
+
+```python startafter=start_example endbefore=end_example file=/integrations/notdiamond/assets.py
+from dagster_notdiamond import NotDiamondResource
+
+from dagster import AssetExecutionContext, Definitions, EnvVar, asset, define_asset_job
+
+
+@asset(compute_kind="notdiamond")
+def notdiamond_asset(context: AssetExecutionContext, notdiamond: NotDiamondResource):
+    with notdiamond.get_client(context) as client:
+        client.chat.completions.create(
+            model="gpt-3.5-turbo",
+            messages=[{"role": "user", "content": "Say this is a test."}],
+        )
+
+
+notdiamond_asset_job = define_asset_job(name="notdiamond_asset_job", selection="notdiamond_asset")
+
+defs = Definitions(
+    assets=[notdiamond_asset],
+    jobs=[notdiamond_asset_job],
+    resources={
+        "notdiamond": NotDiamondResource(api_key=EnvVar("notdiamond_API_KEY")),
+    },
+)
+```
+
+After materializing your asset, your notdiamond API usage metadata will be available in the **Events** and **Plots** tabs of your asset in the Dagster UI. If you are using [Dagster+](/dagster-plus), your usage metadata will also be available in [Dagster Insights](/dagster-plus/insights). Refer to the [Viewing and materializing assets in the UI guide](https://docs.dagster.io/concepts/assets/software-defined-assets#viewing-and-materializing-assets-in-the-ui) for more information.
+
+---
+
+## Using the notdiamond resource with ops
+
+The notdiamond resource can also be used in ops. **Note**: Currently, the notdiamond resource doesn't (out-of-the-box) log notdiamond usage metadata when used in ops.
+
+```python startafter=start_example endbefore=end_example file=/integrations/notdiamond/ops.py
+from dagster_notdiamond import NotDiamondResource
+
+from dagster import Definitions, EnvVar, GraphDefinition, OpExecutionContext, op
+
+
+@op
+def notdiamond_op(context: OpExecutionContext, notdiamond: NotDiamondResource):
+    with notdiamond.get_client(context) as client:
+        client.chat.completions.create(
+            model="gpt-3.5-turbo",
+            messages=[{"role": "user", "content": "Say this is a test"}],
+        )
+
+
+notdiamond_op_job = GraphDefinition(name="notdiamond_op_job", node_defs=[notdiamond_op]).to_job()
+
+defs = Definitions(
+    jobs=[notdiamond_op_job],
+    resources={
+        "notdiamond": NotDiamondResource(api_key=EnvVar("notdiamond_API_KEY")),
+    },
+)
+```
+
+---
+
+## Relevant APIs
+
+| Name                                                              | Description                                                                           |
+| ----------------------------------------------------------------- | ------------------------------------------------------------------------------------- |
+| <PyObject module="dagster_notdiamond" object="NotDiamondResource" />      | The notdiamond resource used for handing the client                                       |
+| <PyObject module="dagster_notdiamond" object="with_usage_metadata" /> | The function wrapper used on notdiamond API endpoint methods to log notdiamond usage metadata |
+
+[docs]: https://docs.notdiamond.ai
